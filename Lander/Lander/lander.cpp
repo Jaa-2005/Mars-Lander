@@ -25,6 +25,53 @@ void numerical_dynamics (void)
   // lander's pose. The time step is delta_t (global variable).
 {
   // INSERT YOUR CODE HERE
+    
+    //declare local variables
+    static vector3d previous_position;
+    vector3d force, lander_drag, chute_drag, g_force, new_position, new_velocity;
+    double current_mass, drag_lander_mag, g_force_mag,chute_drag_mag;
+    
+    //calculate the magnitude of the forces
+    drag_lander_mag =  0.5*DRAG_COEF_LANDER*atmospheric_density(position)*M_PI*LANDER_SIZE*LANDER_SIZE*velocity.abs2();
+    g_force_mag = (GRAVITY*MARS_MASS)/pow(MARS_RADIUS, 2);
+    chute_drag_mag = 0.5*DRAG_COEF_CHUTE*atmospheric_density(position)*5.0*2.0*LANDER_SIZE*2.0*LANDER_SIZE*velocity.abs2();
+    
+    //make the forces into 3D vectors
+    lander_drag = -drag_lander_mag*velocity.norm();
+    chute_drag = -chute_drag_mag*velocity.norm();
+    g_force = -g_force_mag*position.norm();
+    
+    //update current mass (unsure what they have defined as fuel)
+    current_mass = UNLOADED_LANDER_MASS + fuel*FUEL_DENSITY;
+    
+    // not sure to use current mass or where to place this line
+    previous_position = position - velocity*delta_t + 0.5*pow(delta_t, 2)*force/current_mass;
+    
+    //force claculation based on parachute status
+    if (parachute_status == NOT_DEPLOYED){
+        force = g_force + lander_drag + thrust_wrt_world();
+    }else{
+        force = g_force + lander_drag + chute_drag + thrust_wrt_world();
+    }
+    
+    //numerical integration taking the case of t=0 as a euler integration
+    if (simulation_time == 0.0){
+        //euler
+        new_position = position + delta_t*velocity;
+        velocity = velocity + delta_t*(force/current_mass);
+        position = new_position;
+        
+    }else{
+        //verlet
+        new_position = 2*position - previous_position + (force/current_mass)*pow(delta_t, 2);
+        new_velocity = (new_position - position)/delta_t;
+        
+        previous_position = position;
+        position = new_position;
+        velocity = new_velocity;
+        
+    }
+  
 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
@@ -137,5 +184,3 @@ void initialize_simulation (void)
 
   }
 }
-
-void Commit_test();
