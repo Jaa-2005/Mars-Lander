@@ -26,6 +26,8 @@ void numerical_dynamics (void)
 {
   // INSERT YOUR CODE HERE
     
+    bool debug_mode = 1;
+    
     //declare local variables
     static vector3d previous_position;
     vector3d force, lander_drag, chute_drag, g_force, new_position, new_velocity;
@@ -42,7 +44,7 @@ void numerical_dynamics (void)
     g_force = -g_force_mag*position.norm();
     
     //update current mass (unsure what they have defined as fuel)
-    current_mass = UNLOADED_LANDER_MASS + fuel*FUEL_DENSITY;
+    current_mass = UNLOADED_LANDER_MASS + fuel*FUEL_DENSITY*FUEL_CAPACITY;
     
     // not sure to use current mass or where to place this line
     previous_position = position - velocity*delta_t + 0.5*pow(delta_t, 2)*force/current_mass;
@@ -61,6 +63,9 @@ void numerical_dynamics (void)
         velocity = velocity + delta_t*(force/current_mass);
         position = new_position;
         
+        if (debug_mode) cout << "Position:" << position << endl;
+        if (debug_mode) cout << "Velocity:" << velocity << endl;
+        
     }else{
         //verlet
         new_position = 2*position - previous_position + (force/current_mass)*pow(delta_t, 2);
@@ -71,7 +76,6 @@ void numerical_dynamics (void)
         velocity = new_velocity;
         
     }
-  
 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();
