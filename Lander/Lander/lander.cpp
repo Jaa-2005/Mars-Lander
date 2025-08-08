@@ -137,3 +137,5 @@ void initialize_simulation (void)
 
   }
 }
+
+void Commit_test();
