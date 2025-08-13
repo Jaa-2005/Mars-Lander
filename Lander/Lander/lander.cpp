@@ -17,34 +17,67 @@
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
-  // INSERT YOUR CODE HERE
+    
+    //defining autopilot local variables
+    double v, e, h, Pout, delta, Kp, Kh;
+    vector<double> v_list, h_list;
+    
+    //set constants
+    Kp = 0.01;
+    Kh = 0.0505;
+    delta = 0.9;
+    
+    //define control theory equations
+    h = position.abs() - MARS_RADIUS;
+    v = velocity.y = (0.5 + Kh*h);
+    e = (0.5 + Kh*h + v);
+    Pout = Kp*e;
+    
+    //update throttle values
+    if (Pout <= -delta){
+        throttle = 0;
+    }else if (-delta < Pout && Pout <= (1 - delta)){
+        throttle = delta + Pout;
+    }else{
+        throttle = 1;
+    }
+    
+    //make file with altitude and elocity for plot.
+    ofstream fout;
+    fout.open("/home/jessicaallen/Documents/results.txt", ios::app);//not opening file dont know why?
+    
+    if (!fout) {
+        cerr << "Error opening file!" << endl;
+    }
+    fout<< h << " " << v << endl;
+    
+    fout.close();
 }
 
 void numerical_dynamics (void)
   // This is the function that performs the numerical integration to update the
   // lander's pose. The time step is delta_t (global variable).
 {
-  // INSERT YOUR CODE HERE
     
-    bool debug_mode = 1;
+    bool debug_mode = 0;
     
     //declare local variables
     static vector3d previous_position;
-    vector3d force, lander_drag, chute_drag, g_force, new_position, new_velocity;
+    vector3d force, lander_drag, chute_drag, g_force, new_position;
     double current_mass, drag_lander_mag, g_force_mag,chute_drag_mag;
+    
+    //update current mass (unsure what they have defined as fuel)
+    current_mass = UNLOADED_LANDER_MASS + fuel*FUEL_DENSITY*FUEL_CAPACITY;
     
     //calculate the magnitude of the forces
     drag_lander_mag =  0.5*DRAG_COEF_LANDER*atmospheric_density(position)*M_PI*LANDER_SIZE*LANDER_SIZE*velocity.abs2();
-    g_force_mag = (GRAVITY*MARS_MASS)/pow(MARS_RADIUS, 2);
+    g_force_mag = (GRAVITY*MARS_MASS*current_mass)/position.abs2();
     chute_drag_mag = 0.5*DRAG_COEF_CHUTE*atmospheric_density(position)*5.0*2.0*LANDER_SIZE*2.0*LANDER_SIZE*velocity.abs2();
     
     //make the forces into 3D vectors
     lander_drag = -drag_lander_mag*velocity.norm();
     chute_drag = -chute_drag_mag*velocity.norm();
     g_force = -g_force_mag*position.norm();
-    
-    //update current mass (unsure what they have defined as fuel)
-    current_mass = UNLOADED_LANDER_MASS + fuel*FUEL_DENSITY*FUEL_CAPACITY;
     
     // not sure to use current mass or where to place this line
     previous_position = position - velocity*delta_t + 0.5*pow(delta_t, 2)*force/current_mass;
@@ -56,24 +89,29 @@ void numerical_dynamics (void)
         force = g_force + lander_drag + chute_drag + thrust_wrt_world();
     }
     
+    //euler version of the numerical dynamics
+    
+    //position = position + delta_t*velocity;
+    //velocity = velocity + delta_t*(force/current_mass);
+    
+    
     //numerical integration taking the case of t=0 as a euler integration
     if (simulation_time == 0.0){
         //euler
-        new_position = position + delta_t*velocity;
+        position = position + delta_t*velocity;
         velocity = velocity + delta_t*(force/current_mass);
-        position = new_position;
         
         if (debug_mode) cout << "Position:" << position << endl;
         if (debug_mode) cout << "Velocity:" << velocity << endl;
+
         
     }else{
         //verlet
         new_position = 2*position - previous_position + (force/current_mass)*pow(delta_t, 2);
-        new_velocity = (new_position - position)/delta_t;
+        velocity = (new_position - position)/delta_t;
         
         previous_position = position;
         position = new_position;
-        velocity = new_velocity;
         
     }
 

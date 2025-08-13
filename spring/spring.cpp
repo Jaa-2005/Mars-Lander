@@ -9,8 +9,7 @@ int main() {
     
     auto start = std::chrono::high_resolution_clock::now();
     
-    
-    {// declare variables
+    // declare variables
         double m, k, x_current, v_current, t_max, dt, t, a_initial, x_previous, a, x_next, v_next;
         vector<double> t_list, x_list, v_list;
         
@@ -27,44 +26,49 @@ int main() {
         a_initial = -k * x_current / m;
         x_previous = x_current - v_current * dt + 0.5 * a_initial * pow(dt, 2);
         
-        // Euler integration
-        for (t = 0; t <= t_max; t = t + dt) {
-            
-            // append current state to trajectories
-            t_list.push_back(t);
-            x_list.push_back(x_current);
-            v_list.push_back(v_current);
-            
-            // calculate new position and velocity
-            a = -k * x_current / m;
-            
-            x_next = 2 * x_current - x_previous + a * pow(dt,2);
-            
-            v_next = (x_next - x_current)/dt;
-            
-            x_previous = x_current;
-            x_current = x_next;
-            v_current = v_next;
-            
-        }
+        // Verlet integration
+    for (t = 0; t <= t_max; t = t + dt) {
+        
+        // append current state to trajectories
+        t_list.push_back(t);
+        x_list.push_back(x_current);
+        v_list.push_back(v_current);
+        
+        // calculate new position and velocity
+        a = -k * x_current / m;
+        
+        x_next = 2 * x_current - x_previous + a * pow(dt,2);
+        
+        v_next = (x_next - x_current)/dt;
+        
+        x_previous = x_current;
+        x_current = x_next;
+        v_current = v_next;
+    }
         
         
-        
-        // Write the trajectories to file
-        ofstream fout;
-        fout.open("trajectories.txt");
-        if (fout) { // file opened successfully
-            for (int i = 0; i < t_list.size(); i = i + 1) {
-                fout << t_list[i] << ' ' << x_list[i] << ' ' << v_list[i] << endl;
-            }
-        } else { // file did not open successfully
-            cout << "Could not open trajectory file for writing" << endl;
-        }
         
         auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = end - start;
-        std::cout << "Execution time: " << duration.count() << " seconds\n";
+        
+        // Calculate duration in milliseconds
+    std::chrono::duration<double>duration = end -start;
+        
+        std::cout << "Execution time: " << duration.count() << " seconds" << endl;
+    
         return 0;
+        
+        // Write the trajectories to file
+        //ofstream fout;
+        //fout.open("Users/Documents/trajectories.txt");
+        //if (fout) { // file opened successfully
+        //for (int i = 0; i < t_list.size(); i = i + 1) {
+        //  fout << t_list[i] << ' ' << x_list[i] << ' ' << v_list[i] << endl;
+        //   }
+        // } else { // file did not open successfully
+        //    cout << "Could not open trajectory file for writing" << endl;
+        //  }
+        
+        
         
         
         /* The file can be loaded and visualised in Python as follows:
@@ -82,4 +86,4 @@ int main() {
          plt.show()
          
          */
-    }}
+    }
