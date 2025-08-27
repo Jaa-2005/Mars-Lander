@@ -103,7 +103,8 @@ void numerical_dynamics (void)
         
         if (debug_mode) cout << "Position:" << position << endl;
         if (debug_mode) cout << "Velocity:" << velocity << endl;
-
+        if (debug_mode) cout << "g_force:"<< g_force << endl;
+        if (debug_mode) cout << "lander_drag"<< lander_drag << endl;
         
     }else{
         //verlet
