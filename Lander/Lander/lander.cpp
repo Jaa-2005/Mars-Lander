@@ -44,13 +44,13 @@ void autopilot (void)
     
     //make file with altitude and elocity for plot.
     ofstream fout;
-    fout.open("/home/jessicaallen/Documents/results.txt", ios::app);//not opening file dont know why?
+    fout.open("/Users/jessicaallen/Documents/results.txt", ios::app);
     
     if (!fout) {
         cerr << "Error opening file!" << endl;
+    }else{
+        fout<< h << " " << v << endl;
     }
-    fout<< h << " " << v << endl;
-    
     fout.close();
 }
 
