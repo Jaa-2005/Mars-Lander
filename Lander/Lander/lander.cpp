@@ -19,18 +19,19 @@ void autopilot (void)
 {
     
     //defining autopilot local variables
+    vector3d er;
     double v, e, h, Pout, delta, Kp, Kh;
-    vector<double> v_list, h_list;
     
     //set constants
-    Kp = 0.01;
-    Kh = 0.0505;
-    delta = 0.9;
+    Kp = 0.9;
+    Kh = 0.018;
+    delta = 0.1;
     
     //define control theory equations
-    h = position.abs() - MARS_RADIUS;
-    v = velocity.y = (0.5 + Kh*h);
-    e = (0.5 + Kh*h + v);
+    h = (position.abs() - MARS_RADIUS);
+    er = position.norm();
+    v = velocity * er;
+    e = -(0.5 + Kh*h + v);
     Pout = Kp*e;
     
     //update throttle values
@@ -42,16 +43,17 @@ void autopilot (void)
         throttle = 1;
     }
     
-    //make file with altitude and elocity for plot.
-    ofstream fout;
-    fout.open("/Users/jessicaallen/Documents/results.txt", ios::app);
+    //make file with altitude and velocity for plot.
     
-    if (!fout) {
-        cerr << "Error opening file!" << endl;
-    }else{
-        fout<< h << " " << v << endl;
-    }
-    fout.close();
+    {ofstream fout;
+        fout.open("/Users/jessicaallen/Documents/results14.txt", ios::app);
+        
+        if (!fout) {
+            cerr << "Error opening file!" << endl;
+        }else{
+            fout<< h << ' ' << v << endl;
+        }
+        fout.close();}
 }
 
 void numerical_dynamics (void)
@@ -103,7 +105,8 @@ void numerical_dynamics (void)
         
         if (debug_mode) cout << "Position:" << position << endl;
         if (debug_mode) cout << "Velocity:" << velocity << endl;
-
+        if (debug_mode) cout << "g_force:"<< g_force << endl;
+        if (debug_mode) cout << "lander_drag"<< lander_drag << endl;
         
     }else{
         //verlet
@@ -133,12 +136,12 @@ void initialize_simulation (void)
   // boolean state variables - parachute_status, stabilized_attitude, autopilot_enabled
   // scenario_description - a descriptive string for the help screen
 
-  scenario_description[0] = "circular orbit";
-  scenario_description[1] = "descent from 10km";
+  scenario_description[0] = "descent from 10km";
+  scenario_description[5] = "circular orbit";
   scenario_description[2] = "elliptical orbit, thrust changes orbital plane";
   scenario_description[3] = "polar launch at escape velocity (but drag prevents escape)";
   scenario_description[4] = "elliptical orbit that clips the atmosphere and decays";
-  scenario_description[5] = "descent from 200km";
+  scenario_description[0] = "descent from 200km";
   scenario_description[6] = "";
   scenario_description[7] = "";
   scenario_description[8] = "";
@@ -146,7 +149,7 @@ void initialize_simulation (void)
 
   switch (scenario) {
 
-  case 0:
+  case 1:
     // a circular equatorial orbit
     position = vector3d(1.2*MARS_RADIUS, 0.0, 0.0);
     velocity = vector3d(0.0, -3247.087385863725, 0.0);
@@ -157,7 +160,7 @@ void initialize_simulation (void)
     autopilot_enabled = false;
     break;
 
-  case 1:
+  case 5:
     // a descent from rest at 10km altitude
     position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     velocity = vector3d(0.0, 0.0, 0.0);
@@ -201,7 +204,7 @@ void initialize_simulation (void)
     autopilot_enabled = false;
     break;
 
-  case 5:
+  case 0:
     // a descent from rest at the edge of the exosphere
     position = vector3d(0.0, -(MARS_RADIUS + EXOSPHERE), 0.0);
     velocity = vector3d(0.0, 0.0, 0.0);
